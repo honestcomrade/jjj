@@ -61,4 +61,17 @@ public class DemoControllerIntegrationTest {
     assertThat(messages).extracting("message").contains("Test message from test");
   }
 
+  @Test
+  void uniqueConstraintViolationReturnsConflict() {
+    Message first = new Message(null, "Unique pair message", "bob");
+    // First insert should succeed
+    ResponseEntity<Message> firstResp = restTemplate.postForEntity("/messages", first, Message.class);
+    assertThat(firstResp.getStatusCode().is2xxSuccessful()).isTrue();
+    assertThat(firstResp.getBody()).isNotNull();
+
+    // Second insert with the same (message, author) should trigger unique violation
+    ResponseEntity<String> secondResp = restTemplate.postForEntity("/messages", first, String.class);
+    assertThat(secondResp.getStatusCode().value()).isEqualTo(500);
+  }
+
 }
