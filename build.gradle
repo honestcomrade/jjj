@@ -38,3 +38,21 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+// Task to install git hooks from the tracked hooks directory
+tasks.register('installGitHooks', Copy) {
+    description = 'Copies git hooks from hooks/ directory to .git/hooks/'
+    from file('hooks')
+    into file('.git/hooks')
+    fileMode = 0755
+}
+
+// Automatically install hooks when building
+tasks.named('build') {
+    dependsOn 'installGitHooks'
+}
+
+// Also install hooks on clean build
+tasks.named('clean') {
+    finalizedBy 'installGitHooks'
+}
