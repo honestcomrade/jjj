@@ -1,12 +1,13 @@
-package com.example.demo.dao;
+package com.messager.application.Dao;
 
 import java.util.List;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.dao.DataAccessException;
 
-import com.example.demo.Message;
+import com.messager.application.Models.Message;
+
+import org.springframework.dao.DataAccessException;
 
 @Repository
 public class MessageDao {

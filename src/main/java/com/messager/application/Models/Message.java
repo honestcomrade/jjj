@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.messager.application.Models;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

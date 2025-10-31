@@ -1,4 +1,4 @@
-package com.example.demo.service;
+package com.messager.application.Services;
 
 import java.util.List;
 
@@ -7,8 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.example.demo.Message;
-import com.example.demo.dao.MessageDao;
+import com.messager.application.Dao.MessageDao;
+import com.messager.application.Models.Message;
 
 @Service
 public class MessageService {

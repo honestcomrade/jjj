@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.messager.application.Controllers;
 
 import java.util.List;
 
@@ -8,15 +8,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.demo.service.MessageService;
+import com.messager.application.Models.Message;
+import com.messager.application.Services.MessageService;
 
 @RestController
-public class DemoController {
+public class MessageController {
 
   private final MessageService messageService;
 
   @Autowired
-  public DemoController(MessageService messageService) {
+  public MessageController(MessageService messageService) {
     this.messageService = messageService;
   }
 

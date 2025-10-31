@@ -4,7 +4,7 @@ plugins {
     id 'java'
 }
 
-group = 'com.example'
+group = 'com.messager'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '21'
 targetCompatibility = '21'
