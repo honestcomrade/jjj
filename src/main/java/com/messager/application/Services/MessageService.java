@@ -34,7 +34,7 @@ public class MessageService {
     }
 
     try {
-      return messageDao.insert(message.getMessage(), message.getAuthor());
+      return messageDao.insert(message.getMessage(), message.getAuthor(), message.getChatId());
     } catch (DataAccessException ex) {
       throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to insert message", ex);
     }

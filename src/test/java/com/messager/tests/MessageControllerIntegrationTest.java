@@ -59,15 +59,29 @@ public class MessageControllerIntegrationTest {
 
   @Test
   void uniqueConstraintViolationReturns500() {
-    Message first = new Message("Unique pair message", "bob");
+    Message first = new Message("Unique per chat message", "bob", 1L);
     // First insert should succeed
     ResponseEntity<Message> firstResp = restTemplate.postForEntity("/messages", first, Message.class);
     assertThat(firstResp.getStatusCode().is2xxSuccessful()).isTrue();
     assertThat(firstResp.getBody()).isNotNull();
 
-    // Second insert with the same (message, author) should trigger unique violation
-    ResponseEntity<String> secondResp = restTemplate.postForEntity("/messages", first, String.class);
+    // Second insert with the same text in the same chat should trigger unique
+    // violation
+    Message duplicateSameChat = new Message("Unique per chat message", "alice", 1L);
+    ResponseEntity<String> secondResp = restTemplate.postForEntity("/messages", duplicateSameChat, String.class);
     assertThat(secondResp.getStatusCode().value()).isEqualTo(500);
+  }
+
+  @Test
+  void sameTextAllowedInDifferentChats() {
+    Message inChat1 = new Message("Cross chat duplicate", "eve", 1L);
+    ResponseEntity<Message> firstResp = restTemplate.postForEntity("/messages", inChat1, Message.class);
+    assertThat(firstResp.getStatusCode().is2xxSuccessful()).isTrue();
+
+    Message inChat2 = new Message("Cross chat duplicate", "mallory", 2L);
+    ResponseEntity<Message> secondResp = restTemplate.postForEntity("/messages", inChat2, Message.class);
+    assertThat(secondResp.getStatusCode().is2xxSuccessful()).isTrue();
+    assertThat(secondResp.getBody()).isNotNull();
   }
 
 }
