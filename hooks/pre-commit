@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Pre-commit hook that runs all tests before allowing a commit
+# If tests fail, the commit will be denied
+
+echo "Running tests before commit..."
+
+# Run Gradle tests
+./gradlew test
+
+# Capture the exit code
+TEST_EXIT_CODE=$?
+
+# If tests failed, deny the commit
+if [ $TEST_EXIT_CODE -ne 0 ]; then
+    echo ""
+    echo "❌ COMMIT DENIED: Tests failed!"
+    echo "Please fix the failing tests before committing."
+    exit 1
+fi
+
+echo ""
+echo "✅ All tests passed! Proceeding with commit..."
+exit 0

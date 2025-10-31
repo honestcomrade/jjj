@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.messager.tests;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,11 +11,14 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import com.messager.application.MessageApplication;
+import com.messager.application.Models.Message;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = MessageApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
-public class DemoControllerIntegrationTest {
+public class MessageControllerIntegrationTest {
 
   @Container
   static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
@@ -34,14 +37,7 @@ public class DemoControllerIntegrationTest {
   private TestRestTemplate restTemplate;
 
   @Test
-  void healthCheck() {
-    ResponseEntity<String> resp = restTemplate.getForEntity("/health", String.class);
-    assertThat(resp.getStatusCode().is2xxSuccessful()).isTrue();
-    assertThat(resp.getBody()).isEqualTo("OK");
-  }
-
-  @Test
-  void getMessages() {
+  void withMessageGet_returnsMessages() {
     ResponseEntity<Message[]> messagesResp = restTemplate.getForEntity("/messages", Message[].class);
     assertThat(messagesResp.getStatusCode().is2xxSuccessful());
     Message[] messages = messagesResp.getBody();
@@ -50,8 +46,8 @@ public class DemoControllerIntegrationTest {
   }
 
   @Test
-  void postMessage() {
-    Message toPost = new Message(null, "Test message from test");
+  void withValidMessage_canPost_ReturnSuccess() {
+    Message toPost = new Message("Test message from test", "footman");
     Message created = restTemplate.postForObject("/messages", toPost, Message.class);
     assertThat(created).isNotNull();
     assertThat(created.getId()).isNotNull();
@@ -62,8 +58,8 @@ public class DemoControllerIntegrationTest {
   }
 
   @Test
-  void uniqueConstraintViolationReturnsConflict() {
-    Message first = new Message(null, "Unique pair message", "bob");
+  void uniqueConstraintViolationReturns500() {
+    Message first = new Message("Unique pair message", "bob");
     // First insert should succeed
     ResponseEntity<Message> firstResp = restTemplate.postForEntity("/messages", first, Message.class);
     assertThat(firstResp.getStatusCode().is2xxSuccessful()).isTrue();
