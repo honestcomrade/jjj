@@ -1,6 +1,7 @@
 package com.messager.application.Services;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.messager.application.DataNotFoundException;
 import com.messager.application.Dao.BusinessModelDao;
@@ -28,8 +29,23 @@ public class BusinessModelService {
     this.businessModelDao = businessModelDao;
   }
 
+  /**
+   * Creates a BusinessModel and its related child entities.
+   * 
+   * Uses pessimistic locking (SELECT ... FOR UPDATE) on the parent entity to serialize
+   * concurrent operations under the same parent ID. This prevents race conditions when
+   * multiple threads try to create child entities with the same names simultaneously.
+   * 
+   * How it works:
+   * 1. Lock the parent row at the start of the transaction
+   * 2. Other threads attempting to lock the same parent will wait
+   * 3. Each thread processes sequentially, seeing previously created child entities
+   * 4. No duplicate children are created due to serialization by parent ID
+   */
+  @Transactional
   public BusinessModel create(BusinessModelCreateRequest req) {
-    ParentEntity parent = parentService.getParentOrThrow(req.getParentId());
+    // Lock the parent row to serialize all operations under this parent ID
+    ParentEntity parent = parentService.getParentOrThrowWithLock(req.getParentId());
 
     Child1 child1 = this.getOrCreateChild1(parent.getId(), req.getChild1Name());
     Child2 child2 = this.getOrCreateChild2(parent.getId(), req.getChild2Name());
