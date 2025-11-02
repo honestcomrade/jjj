@@ -29,7 +29,7 @@ public class Child1Dao {
     return c;
   };
 
-  public Child1 insertStrict(Child1 child1) throws DataAccessException {
+  public Child1 save(Child1 child1) throws DataAccessException {
     String sql = "INSERT INTO child1(parent_id, name) VALUES (?, ?)";
     KeyHolder keyHolder = new GeneratedKeyHolder();
 

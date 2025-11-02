@@ -29,7 +29,7 @@ public class Child2Dao {
     return c;
   };
 
-  public Child2 insertStrict(Child2 child2) throws DataAccessException {
+  public Child2 save(Child2 child2) throws DataAccessException {
     String sql = "INSERT INTO child2(parent_id, name) VALUES (?, ?)";
     KeyHolder keyHolder = new GeneratedKeyHolder();
     jdbcTemplate.update(con -> {
