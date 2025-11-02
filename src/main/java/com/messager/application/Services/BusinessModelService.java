@@ -5,7 +5,12 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.retry.annotation.Backoff;
+import org.springframework.dao.CannotAcquireLockException;
+import org.springframework.dao.CannotSerializeTransactionException;
+import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DeadlockLoserDataAccessException;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.dao.TransientDataAccessException;
 
 import com.messager.application.DataNotFoundException;
@@ -35,10 +40,17 @@ public class BusinessModelService {
   }
 
   @Transactional(isolation = Isolation.SERIALIZABLE)
-  @Retryable(retryFor = {
-      TransientDataAccessException.class,
-      DataIntegrityViolationException.class
-  }, maxAttempts = 5, backoff = @Backoff(delay = 30, maxDelay = 300, multiplier = 2.0, random = true))
+  @Retryable(
+    retryFor = {
+      PessimisticLockingFailureException.class,  // PostgreSQL serialization failures (SQLState 40001)
+      CannotAcquireLockException.class,           // Lock timeout
+      ConcurrencyFailureException.class,          // Generic Spring concurrency wrapper
+      TransientDataAccessException.class,         // Various transient DB errors
+      DataIntegrityViolationException.class       // Unique constraint violations (fallback)
+    },
+    maxAttempts = 3,
+    backoff = @Backoff(delay = 30, maxDelay = 300, multiplier = 2.0, random = true)
+  )
   public BusinessModel create(BusinessModelCreateRequest req) {
     ParentEntity parent = parentService.getParentOrThrow(req.getParentId());
 
