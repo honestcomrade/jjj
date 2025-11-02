@@ -7,11 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Chat {
+public class ParentEntity {
   private Long id;
   private String name;
-
-  public Chat(String name) {
-    this.name = name;
-  }
 }

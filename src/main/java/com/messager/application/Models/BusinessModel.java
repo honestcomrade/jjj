@@ -7,8 +7,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Post {
+public class BusinessModel {
   private Long id;
-  private Long topicId;
-  private String text;
+  private String name;
+  private String type;
+  private Long parentId;
+  private Long child1Id;
+  private Long child2Id;
+  private Long grandchild1Id;
 }

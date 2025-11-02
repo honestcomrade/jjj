@@ -7,8 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Topic {
+public class Child1 {
   private Long id;
-  private Long chatId;
+  private Long parentId;
   private String name;
 }
