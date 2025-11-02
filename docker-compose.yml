@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: jjj-postgres
+    environment:
+      POSTGRES_DB: jjj_db
+      POSTGRES_USER: jjj_user
+      POSTGRES_PASSWORD: jjj_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jjj_user -d jjj_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
