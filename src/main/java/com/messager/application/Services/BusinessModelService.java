@@ -1,5 +1,6 @@
 package com.messager.application.Services;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import com.messager.application.DataNotFoundException;
@@ -41,35 +42,50 @@ public class BusinessModelService {
   }
 
   private Grandchild1 getOrCreateGrandchild1(Long child1Id, String name) {
+    // Insert first; on unique violation fall back to read existing
+    Grandchild1 toInsert = new Grandchild1();
+    toInsert.setChild1Id(child1Id);
+    toInsert.setName(name);
     try {
-      return grandchild1Service.getByChildAndName(child1Id, name);
-    } catch (DataNotFoundException ex) {
-      Grandchild1 grandchild1 = new Grandchild1();
-      grandchild1.setChild1Id(child1Id);
-      grandchild1.setName(name);
-      return grandchild1Service.save(grandchild1);
+      return grandchild1Service.save(toInsert);
+    } catch (DataIntegrityViolationException ex) {
+      // Another thread created it first; attempt to read the committed row
+      try {
+        return grandchild1Service.getByChildAndName(child1Id, name);
+      } catch (DataNotFoundException nf) {
+        // If not yet visible, propagate original violation; controller/test may retry
+        throw ex;
+      }
     }
   }
 
   private Child1 getOrCreateChild1(Long parentId, String name) {
+    Child1 toInsert = new Child1();
+    toInsert.setParentId(parentId);
+    toInsert.setName(name);
     try {
-      return child1Service.getByParentAndName(parentId, name);
-    } catch (DataNotFoundException ex) {
-      Child1 child1 = new Child1();
-      child1.setParentId(parentId);
-      child1.setName(name);
-      return child1Service.save(child1);
+      return child1Service.save(toInsert);
+    } catch (DataIntegrityViolationException ex) {
+      try {
+        return child1Service.getByParentAndName(parentId, name);
+      } catch (DataNotFoundException nf) {
+        throw ex;
+      }
     }
   }
 
   private Child2 getOrCreateChild2(Long parentId, String name) {
+    Child2 toInsert = new Child2();
+    toInsert.setParentId(parentId);
+    toInsert.setName(name);
     try {
-      return child2Service.getByParentAndName(parentId, name);
-    } catch (DataNotFoundException ex) {
-      Child2 child2 = new Child2();
-      child2.setParentId(parentId);
-      child2.setName(name);
-      return child2Service.save(child2);
+      return child2Service.save(toInsert);
+    } catch (DataIntegrityViolationException ex) {
+      try {
+        return child2Service.getByParentAndName(parentId, name);
+      } catch (DataNotFoundException nf) {
+        throw ex;
+      }
     }
   }
 }
