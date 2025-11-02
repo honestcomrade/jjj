@@ -20,4 +20,9 @@ public class Child1Service {
   public Child1 save(Child1 child1) {
     return child1Dao.insertStrict(child1);
   }
+
+  // UPSERT-based idempotent creation
+  public Child1 upsertGetOrCreate(Long parentId, String name) {
+    return child1Dao.upsertReturning(parentId, name);
+  }
 }

@@ -23,7 +23,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.messager.application.MessageApplication;
-import com.messager.application.Models.BusinessModel;
+import com.messager.application.Models.dto.BusinessModelGraph;
 import com.messager.application.Models.dto.BusinessModelCreateRequest;
 
 @SpringBootTest(classes = MessageApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -60,20 +60,24 @@ public class BusinessModelControllerIntegrationTest {
     request.setGrandchild1Name("grandchild1-a");
     request.setRequestSequence(1);
 
-    ResponseEntity<BusinessModel> response = restTemplate.postForEntity("/business-models", request,
-        BusinessModel.class);
+  ResponseEntity<BusinessModelGraph> response = restTemplate.postForEntity("/business-models", request,
+    BusinessModelGraph.class);
 
     assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-    BusinessModel created = response.getBody();
+  BusinessModelGraph created = response.getBody();
     assertThat(created).isNotNull();
-    assertThat(created.getId()).isNotNull();
-    assertThat(created.getName()).isEqualTo("bm-1");
-    assertThat(created.getType()).isEqualTo("alpha");
-    assertThat(created.getParentId()).isEqualTo(1L);
-    assertThat(created.getChild1Id()).isNotNull();
-    assertThat(created.getChild2Id()).isNotNull();
-    assertThat(created.getGrandchild1Id()).isNotNull();
-    assertThat(created.getRequestSequence()).isEqualTo(1);
+  assertThat(created.getId()).isNotNull();
+  assertThat(created.getName()).isEqualTo("bm-1");
+  assertThat(created.getType()).isEqualTo("alpha");
+  assertThat(created.getRequestSequence()).isEqualTo(1);
+  assertThat(created.getParent()).isNotNull();
+  assertThat(created.getParent().getId()).isEqualTo(1L);
+  assertThat(created.getChild1()).isNotNull();
+  assertThat(created.getChild1().getId()).isNotNull();
+  assertThat(created.getChild2()).isNotNull();
+  assertThat(created.getChild2().getId()).isNotNull();
+  assertThat(created.getGrandchild1()).isNotNull();
+  assertThat(created.getGrandchild1().getId()).isNotNull();
   }
 
   @Test
@@ -95,7 +99,7 @@ public class BusinessModelControllerIntegrationTest {
       for (int b = 0; b < batches; b++) {
         // Use same child names to force contention on unique constraints
         CountDownLatch startGate = new CountDownLatch(1);
-        List<Future<ResponseEntity<BusinessModel>>> futures = new ArrayList<>(batchSize);
+  List<Future<ResponseEntity<BusinessModelGraph>>> futures = new ArrayList<>(batchSize);
 
         for (int i = 0; i < batchSize; i++) {
           final int batchNum = b;
@@ -123,16 +127,16 @@ public class BusinessModelControllerIntegrationTest {
                 ", grandchild1Name=" + request.getGrandchild1Name() + 
                 ", sequence=" + request.getRequestSequence());
 
-            ResponseEntity<BusinessModel> response = restTemplate.postForEntity("/business-models", request, BusinessModel.class);
+            ResponseEntity<BusinessModelGraph> response = restTemplate.postForEntity("/business-models", request, BusinessModelGraph.class);
             
             if (response.getStatusCode().is2xxSuccessful()) {
-              BusinessModel result = response.getBody();
+              BusinessModelGraph result = response.getBody();
               System.out.println("[Request #" + sequenceNum + "] ✓ SUCCESS → BusinessModel[" +
                   "id=" + result.getId() + 
-                  ", parentId=" + result.getParentId() + 
-                  ", child1Id=" + result.getChild1Id() + 
-                  ", child2Id=" + result.getChild2Id() + 
-                  ", grandchild1Id=" + result.getGrandchild1Id() + "]");
+                  ", parentId=" + (result.getParent() != null ? result.getParent().getId() : null) + 
+                  ", child1Id=" + (result.getChild1() != null ? result.getChild1().getId() : null) + 
+                  ", child2Id=" + (result.getChild2() != null ? result.getChild2().getId() : null) + 
+                  ", grandchild1Id=" + (result.getGrandchild1() != null ? result.getGrandchild1().getId() : null) + "]");
             } else {
               System.out.println("[Request #" + sequenceNum + "] ✗ FAILED with status: " + response.getStatusCode());
             }
@@ -145,8 +149,8 @@ public class BusinessModelControllerIntegrationTest {
         startGate.countDown();
 
         // Collect results
-        for (Future<ResponseEntity<BusinessModel>> future : futures) {
-          ResponseEntity<BusinessModel> response = future.get(10, TimeUnit.SECONDS);
+        for (Future<ResponseEntity<BusinessModelGraph>> future : futures) {
+          ResponseEntity<BusinessModelGraph> response = future.get(10, TimeUnit.SECONDS);
           if (response.getStatusCode().is2xxSuccessful()) {
             successCount++;
           } else {
@@ -159,11 +163,8 @@ public class BusinessModelControllerIntegrationTest {
       pool.awaitTermination(10, TimeUnit.SECONDS);
     }
 
-    // Expect some failures due to unique constraint violations under concurrency
-    // In ideal naive implementation: 1 success per batch, 9 failures per batch
-    // But with retries in service layer, we should see more successes (reuse)
-    assertThat(successCount).isGreaterThan(0);
-    assertThat(successCount + failureCount).isEqualTo(totalRequests);
+    assertThat(successCount).isEqualTo(totalRequests);
+    assertThat(failureCount).isEqualTo(0);
 
     // Query DB to see which request sequences actually succeeded
     List<Integer> successfulSequences = jdbcTemplate.query(
@@ -177,7 +178,7 @@ public class BusinessModelControllerIntegrationTest {
     System.out.println("Request sequences that succeeded: " + successfulSequences);
     System.out.println("================================");
 
-    // Analyze pattern: should see exactly 1 from each batch of 10
+    // Analyze pattern: should see exactly 10 from each batch of 10
     System.out.println("\nAnalysis by batch:");
     for (int b = 0; b < batches; b++) {
       final int batchStart = b * batchSize;

@@ -29,6 +29,17 @@ public class Child1Dao {
     return c;
   };
 
+  /**
+   * Idempotent get-or-create using PostgreSQL UPSERT.
+   * Returns the existing row if it already exists, or the newly inserted row.
+   */
+  public Child1 upsertReturning(Long parentId, String name) throws DataAccessException {
+    String sql = "INSERT INTO child1(parent_id, name) VALUES (?, ?) " +
+        "ON CONFLICT (parent_id, name) DO UPDATE SET name = EXCLUDED.name " +
+        "RETURNING id, parent_id, name";
+    return jdbcTemplate.queryForObject(sql, CHILD1_ROW_MAPPER, parentId, name);
+  }
+
   public Child1 insertStrict(Child1 child1) throws DataAccessException {
     String sql = "INSERT INTO child1(parent_id, name) VALUES (?, ?)";
     KeyHolder keyHolder = new GeneratedKeyHolder();

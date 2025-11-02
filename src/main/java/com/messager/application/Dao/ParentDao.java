@@ -25,4 +25,24 @@ public class ParentDao {
       return null;
     });
   }
+
+  /**
+   * Finds a parent by ID and locks the row using SELECT ... FOR UPDATE.
+   * This prevents concurrent transactions from modifying related child entities
+   * until the current transaction completes, effectively serializing operations
+   * by parent ID.
+   * 
+   * Must be called within a transaction.
+   */
+  public ParentEntity findByIdForUpdate(Long id) throws DataAccessException {
+    String sql = "SELECT id FROM parents WHERE id = ? FOR UPDATE";
+    return jdbcTemplate.query(sql, ps -> ps.setLong(1, id), rs -> {
+      if (rs.next()) {
+        ParentEntity parent = new ParentEntity();
+        parent.setId(rs.getLong("id"));
+        return parent;
+      }
+      return null;
+    });
+  }
 }

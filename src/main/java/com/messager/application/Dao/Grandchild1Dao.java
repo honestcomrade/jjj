@@ -29,7 +29,17 @@ public class Grandchild1Dao {
     return g;
   };
 
-  public Grandchild1 insertStrict(Grandchild1 grandchild1) throws DataAccessException {
+  /**
+   * Idempotent get-or-create using PostgreSQL UPSERT.
+   */
+  public Grandchild1 upsertReturning(Long child1Id, String name) throws DataAccessException {
+    String sql = "INSERT INTO grandchild1(child1_id, name) VALUES (?, ?) " +
+        "ON CONFLICT (child1_id, name) DO UPDATE SET name = EXCLUDED.name " +
+        "RETURNING id, child1_id, name";
+    return jdbcTemplate.queryForObject(sql, GRANDCHILD1_ROW_MAPPER, child1Id, name);
+  }
+
+  public Grandchild1 save(Grandchild1 grandchild1) throws DataAccessException {
     String sql = "INSERT INTO grandchild1(child1_id, name) VALUES (?, ?)";
     KeyHolder keyHolder = new GeneratedKeyHolder();
     jdbcTemplate.update(con -> {

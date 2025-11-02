@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.messager.application.Models.BusinessModel;
+import com.messager.application.Models.dto.BusinessModelGraph;
 import com.messager.application.Models.dto.BusinessModelCreateRequest;
 import com.messager.application.Services.BusinessModelService;
 
@@ -20,7 +20,7 @@ public class BusinessModelController {
   }
 
   @PostMapping("/business-models")
-  public BusinessModel create(@RequestBody BusinessModelCreateRequest req) {
+  public BusinessModelGraph create(@RequestBody BusinessModelCreateRequest req) {
     return service.create(req);
   }
 }

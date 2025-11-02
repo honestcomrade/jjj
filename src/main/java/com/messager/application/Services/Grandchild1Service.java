@@ -18,6 +18,11 @@ public class Grandchild1Service {
   }
 
   public Grandchild1 save(Grandchild1 grandchild1) {
-    return grandchild1Dao.insertStrict(grandchild1);
+    return grandchild1Dao.save(grandchild1);
+  }
+
+  // UPSERT-based idempotent creation
+  public Grandchild1 upsertGetOrCreate(Long child1Id, String name) {
+    return grandchild1Dao.upsertReturning(child1Id, name);
   }
 }

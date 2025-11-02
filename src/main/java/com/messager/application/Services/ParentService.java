@@ -22,4 +22,19 @@ public class ParentService {
     }
     return parent;
   }
+
+  /**
+   * Retrieves a parent and locks the row using SELECT ... FOR UPDATE.
+   * This prevents concurrent transactions from creating duplicate child entities
+   * by serializing all operations under the same parent ID.
+   * 
+   * Must be called within a transaction.
+   */
+  public ParentEntity getParentOrThrowWithLock(Long parentId) {
+    ParentEntity parent = parentDao.findByIdForUpdate(parentId);
+    if (parent == null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Parent does not exist: " + parentId);
+    }
+    return parent;
+  }
 }
