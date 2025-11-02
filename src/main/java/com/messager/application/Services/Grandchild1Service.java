@@ -2,7 +2,6 @@ package com.messager.application.Services;
 
 import org.springframework.stereotype.Service;
 
-import com.messager.application.DataNotFoundException;
 import com.messager.application.Dao.Grandchild1Dao;
 import com.messager.application.Models.Grandchild1;
 
@@ -14,7 +13,7 @@ public class Grandchild1Service {
     this.grandchild1Dao = grandchild1Dao;
   }
 
-  public Grandchild1 getByChildAndName(Long child1Id, String name) throws DataNotFoundException {
+  public Grandchild1 getByChildAndName(Long child1Id, String name) {
     return grandchild1Dao.findByChildAndName(child1Id, name);
   }
 
