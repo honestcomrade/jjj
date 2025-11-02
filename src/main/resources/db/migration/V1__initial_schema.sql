@@ -1,17 +1,6 @@
--- Squash existing schema and create the BusinessModel graph with uniqueness enforcing reuse
+-- Initial schema for business model graph with parent/child/grandchild relationships
 
--- Drop legacy tables if present
-DROP TABLE IF EXISTS messages CASCADE;
-DROP TABLE IF EXISTS chats CASCADE;
-DROP TABLE IF EXISTS topics CASCADE;
-DROP TABLE IF EXISTS posts CASCADE;
-DROP TABLE IF EXISTS business_models CASCADE;
-DROP TABLE IF EXISTS parents CASCADE;
-DROP TABLE IF EXISTS child1 CASCADE;
-DROP TABLE IF EXISTS child2 CASCADE;
-DROP TABLE IF EXISTS grandchild1 CASCADE;
-
--- Parents
+-- Parents table
 CREATE TABLE parents (
   id SERIAL PRIMARY KEY,
   name VARCHAR(200) NOT NULL UNIQUE
@@ -41,7 +30,7 @@ CREATE TABLE grandchild1 (
   CONSTRAINT uq_grandchild1_child1_name UNIQUE (child1_id, name)
 );
 
--- Business Models: references all (no unique constraint - allows duplicate combinations)
+-- Business Models: references all entities (no unique constraint - allows duplicate combinations)
 CREATE TABLE business_models (
   id SERIAL PRIMARY KEY,
   name VARCHAR(200) NOT NULL,
@@ -49,8 +38,6 @@ CREATE TABLE business_models (
   parent_id BIGINT NOT NULL REFERENCES parents(id) ON DELETE RESTRICT,
   child1_id BIGINT NOT NULL REFERENCES child1(id) ON DELETE RESTRICT,
   child2_id BIGINT NOT NULL REFERENCES child2(id) ON DELETE RESTRICT,
-  grandchild1_id BIGINT NOT NULL REFERENCES grandchild1(id) ON DELETE RESTRICT
+  grandchild1_id BIGINT NOT NULL REFERENCES grandchild1(id) ON DELETE RESTRICT,
+  request_sequence INTEGER
 );
-
--- Seed a default parent to satisfy the requirement that parent always exists
-INSERT INTO parents(name) VALUES ('default-parent') ON CONFLICT (name) DO NOTHING;
