@@ -3,7 +3,6 @@ package com.messager.application.Services;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.messager.application.DataNotFoundException;
 import com.messager.application.Dao.BusinessModelDao;
 import com.messager.application.Models.BusinessModel;
 import com.messager.application.Models.Child1;
@@ -44,8 +43,8 @@ public class BusinessModelService {
    */
   @Transactional
   public BusinessModel create(BusinessModelCreateRequest req) {
-    // Lock the parent row to serialize all operations under this parent ID
-    ParentEntity parent = parentService.getParentOrThrowWithLock(req.getParentId());
+    // No explicit locks needed; child creation is idempotent via UPSERT
+    ParentEntity parent = parentService.getParentOrThrow(req.getParentId());
 
     Child1 child1 = this.getOrCreateChild1(parent.getId(), req.getChild1Name());
     Child2 child2 = this.getOrCreateChild2(parent.getId(), req.getChild2Name());
@@ -57,35 +56,17 @@ public class BusinessModelService {
   }
 
   private Grandchild1 getOrCreateGrandchild1(Long child1Id, String name) {
-    try {
-      return grandchild1Service.getByChildAndName(child1Id, name);
-    } catch (DataNotFoundException ex) {
-      Grandchild1 grandchild1 = new Grandchild1();
-      grandchild1.setChild1Id(child1Id);
-      grandchild1.setName(name);
-      return grandchild1Service.save(grandchild1);
-    }
+    // Use UPSERT to make creation idempotent and thread-safe
+    return grandchild1Service.upsertGetOrCreate(child1Id, name);
   }
 
   private Child1 getOrCreateChild1(Long parentId, String name) {
-    try {
-      return child1Service.getByParentAndName(parentId, name);
-    } catch (DataNotFoundException ex) {
-      Child1 child1 = new Child1();
-      child1.setParentId(parentId);
-      child1.setName(name);
-      return child1Service.save(child1);
-    }
+    // Use UPSERT to make creation idempotent and thread-safe
+    return child1Service.upsertGetOrCreate(parentId, name);
   }
 
   private Child2 getOrCreateChild2(Long parentId, String name) {
-    try {
-      return child2Service.getByParentAndName(parentId, name);
-    } catch (DataNotFoundException ex) {
-      Child2 child2 = new Child2();
-      child2.setParentId(parentId);
-      child2.setName(name);
-      return child2Service.save(child2);
-    }
+    // Use UPSERT to make creation idempotent and thread-safe
+    return child2Service.upsertGetOrCreate(parentId, name);
   }
 }
