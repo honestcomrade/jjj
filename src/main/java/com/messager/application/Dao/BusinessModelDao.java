@@ -14,10 +14,11 @@ public class BusinessModelDao {
     this.jdbcTemplate = jdbcTemplate;
   }
 
-  public BusinessModel insertStrict(String name, String type, Long parentId, Long child1Id, Long child2Id,
+  public BusinessModel createBusinessModel(String name, String type, Long parentId, Long child1Id, Long child2Id,
       Long grandchild1Id, Integer requestSequence)
       throws DataAccessException {
-    String sql = "INSERT INTO business_models(name, type, parent_id, child1_id, child2_id, grandchild1_id, request_sequence) " +
+    String sql = "INSERT INTO business_models(name, type, parent_id, child1_id, child2_id, grandchild1_id, request_sequence) "
+        +
         "VALUES (?, ?, ?, ?, ?, ?, ?) " +
         "RETURNING id, name, type, parent_id, child1_id, child2_id, grandchild1_id, request_sequence";
     return jdbcTemplate.queryForObject(sql, (rs, row) -> new BusinessModel(
