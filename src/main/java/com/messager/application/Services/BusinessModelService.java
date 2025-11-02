@@ -28,7 +28,7 @@ public class BusinessModelService {
     this.businessModelDao = businessModelDao;
   }
 
-  public BusinessModel createOrReuse(BusinessModelCreateRequest req) {
+  public BusinessModel create(BusinessModelCreateRequest req) {
     ParentEntity parent = parentService.getParentOrThrow(req.getParentId());
 
     Child1 child1 = this.getOrCreateChild1(parent.getId(), req.getChild1Name());
@@ -37,17 +37,23 @@ public class BusinessModelService {
 
     return businessModelDao.insertStrict(req.getName(), req.getType(), parent.getId(), child1.getId(),
         child2.getId(),
-        grandchild1.getId());
+        grandchild1.getId(), req.getRequestSequence());
   }
 
   private Grandchild1 getOrCreateGrandchild1(Long child1Id, String name) {
     try {
       return grandchild1Service.getByChildAndName(child1Id, name);
     } catch (DataNotFoundException ex) {
-      Grandchild1 grandchild1 = new Grandchild1();
-      grandchild1.setChild1Id(child1Id);
-      grandchild1.setName(name);
-      return grandchild1Service.save(grandchild1);
+      try {
+        Grandchild1 grandchild1 = new Grandchild1();
+        grandchild1.setChild1Id(child1Id);
+        grandchild1.setName(name);
+        return grandchild1Service.save(grandchild1);
+      } catch (org.springframework.dao.DuplicateKeyException dkEx) {
+        // Race condition: another thread created it between our find and insert
+        // Retry the find to get the entity created by the winning thread
+        return grandchild1Service.getByChildAndName(child1Id, name);
+      }
     }
   }
 
@@ -55,10 +61,16 @@ public class BusinessModelService {
     try {
       return child1Service.getByParentAndName(parentId, name);
     } catch (DataNotFoundException ex) {
-      Child1 child1 = new Child1();
-      child1.setParentId(parentId);
-      child1.setName(name);
-      return child1Service.save(child1);
+      try {
+        Child1 child1 = new Child1();
+        child1.setParentId(parentId);
+        child1.setName(name);
+        return child1Service.save(child1);
+      } catch (org.springframework.dao.DuplicateKeyException dkEx) {
+        // Race condition: another thread created it between our find and insert
+        // Retry the find to get the entity created by the winning thread
+        return child1Service.getByParentAndName(parentId, name);
+      }
     }
   }
 
@@ -66,10 +78,16 @@ public class BusinessModelService {
     try {
       return child2Service.getByParentAndName(parentId, name);
     } catch (DataNotFoundException ex) {
-      Child2 child2 = new Child2();
-      child2.setParentId(parentId);
-      child2.setName(name);
-      return child2Service.save(child2);
+      try {
+        Child2 child2 = new Child2();
+        child2.setParentId(parentId);
+        child2.setName(name);
+        return child2Service.save(child2);
+      } catch (org.springframework.dao.DuplicateKeyException dkEx) {
+        // Race condition: another thread created it between our find and insert
+        // Retry the find to get the entity created by the winning thread
+        return child2Service.getByParentAndName(parentId, name);
+      }
     }
   }
 }

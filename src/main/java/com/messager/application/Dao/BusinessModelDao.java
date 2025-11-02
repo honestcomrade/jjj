@@ -15,25 +15,27 @@ public class BusinessModelDao {
   }
 
   public BusinessModel insertStrict(String name, String type, Long parentId, Long child1Id, Long child2Id,
-      Long grandchild1Id)
+      Long grandchild1Id, Integer requestSequence)
       throws DataAccessException {
-    String sql = "INSERT INTO business_models(name, type, parent_id, child1_id, child2_id, grandchild1_id) " +
-        "VALUES (?, ?, ?, ?, ?, ?) " +
-        "RETURNING id, name, type, parent_id, child1_id, child2_id, grandchild1_id";
+    String sql = "INSERT INTO business_models(name, type, parent_id, child1_id, child2_id, grandchild1_id, request_sequence) " +
+        "VALUES (?, ?, ?, ?, ?, ?, ?) " +
+        "RETURNING id, name, type, parent_id, child1_id, child2_id, grandchild1_id, request_sequence";
     return jdbcTemplate.queryForObject(sql, (rs, row) -> new BusinessModel(
         rs.getLong("id"), rs.getString("name"), rs.getString("type"),
-        rs.getLong("parent_id"), rs.getLong("child1_id"), rs.getLong("child2_id"), rs.getLong("grandchild1_id")),
-        name, type, parentId, child1Id, child2Id, grandchild1Id);
+        rs.getLong("parent_id"), rs.getLong("child1_id"), rs.getLong("child2_id"), rs.getLong("grandchild1_id"),
+        (Integer) rs.getObject("request_sequence")),
+        name, type, parentId, child1Id, child2Id, grandchild1Id, requestSequence);
   }
 
   public BusinessModel findByNameAndType(String name, String type) throws DataAccessException {
-    String sql = "SELECT id, name, type, parent_id, child1_id, child2_id, grandchild1_id FROM business_models WHERE name = ? AND type = ?";
+    String sql = "SELECT id, name, type, parent_id, child1_id, child2_id, grandchild1_id, request_sequence FROM business_models WHERE name = ? AND type = ?";
     return jdbcTemplate.query(sql, ps -> {
       ps.setString(1, name);
       ps.setString(2, type);
     }, rs -> rs.next() ? new BusinessModel(
         rs.getLong("id"), rs.getString("name"), rs.getString("type"),
-        rs.getLong("parent_id"), rs.getLong("child1_id"), rs.getLong("child2_id"), rs.getLong("grandchild1_id"))
+        rs.getLong("parent_id"), rs.getLong("child1_id"), rs.getLong("child2_id"), rs.getLong("grandchild1_id"),
+        (Integer) rs.getObject("request_sequence"))
         : null);
   }
 }

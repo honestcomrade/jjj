@@ -15,4 +15,5 @@ public class BusinessModel {
   private Long child1Id;
   private Long child2Id;
   private Long grandchild1Id;
+  private Integer requestSequence;
 }

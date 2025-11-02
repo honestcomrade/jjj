@@ -41,7 +41,7 @@ CREATE TABLE grandchild1 (
   CONSTRAINT uq_grandchild1_child1_name UNIQUE (child1_id, name)
 );
 
--- Business Models: references all and unique by (name, type)
+-- Business Models: references all (no unique constraint - allows duplicate combinations)
 CREATE TABLE business_models (
   id SERIAL PRIMARY KEY,
   name VARCHAR(200) NOT NULL,
@@ -49,8 +49,7 @@ CREATE TABLE business_models (
   parent_id BIGINT NOT NULL REFERENCES parents(id) ON DELETE RESTRICT,
   child1_id BIGINT NOT NULL REFERENCES child1(id) ON DELETE RESTRICT,
   child2_id BIGINT NOT NULL REFERENCES child2(id) ON DELETE RESTRICT,
-  grandchild1_id BIGINT NOT NULL REFERENCES grandchild1(id) ON DELETE RESTRICT,
-  CONSTRAINT uq_business_models_name_type UNIQUE (name, type)
+  grandchild1_id BIGINT NOT NULL REFERENCES grandchild1(id) ON DELETE RESTRICT
 );
 
 -- Seed a default parent to satisfy the requirement that parent always exists

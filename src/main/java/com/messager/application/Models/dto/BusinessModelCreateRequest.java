@@ -14,4 +14,5 @@ public class BusinessModelCreateRequest {
   private String child1Name;
   private String child2Name;
   private String grandchild1Name;
+  private Integer requestSequence;
 }

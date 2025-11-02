@@ -20,7 +20,7 @@ public class BusinessModelController {
   }
 
   @PostMapping("/business-models")
-  public BusinessModel createOrReuse(@RequestBody BusinessModelCreateRequest req) {
-    return service.createOrReuse(req);
+  public BusinessModel create(@RequestBody BusinessModelCreateRequest req) {
+    return service.create(req);
   }
 }
