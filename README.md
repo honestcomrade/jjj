@@ -6,8 +6,7 @@ A Spring Boot application designed to reproduce and demonstrate concurrent datab
 
 This project demonstrates the classic **get-or-create race condition** that occurs when multiple threads concurrently try to insert entities with unique constraints. It showcases:
 
-1. **The Problem**: Without proper retry logic, only one thread succeeds while others fail with duplicate key violations
-2. **The Solution**: Implementing retry logic that catches `DuplicateKeyException` and re-queries to reuse the entity created by the winning thread
+1. **The Problem**: Without proper retry or isolation logic, only one thread succeeds while others fail with duplicate key violations
 
 ## Features
 - Spring Boot 3.2.0 with Java 21
