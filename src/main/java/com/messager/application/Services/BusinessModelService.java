@@ -4,12 +4,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.messager.application.Dao.BusinessModelDao;
+import com.messager.application.Dao.BusinessModelReadDao;
 import com.messager.application.Models.BusinessModel;
 import com.messager.application.Models.Child1;
 import com.messager.application.Models.Child2;
 import com.messager.application.Models.Grandchild1;
 import com.messager.application.Models.ParentEntity;
 import com.messager.application.Models.dto.BusinessModelCreateRequest;
+import com.messager.application.Models.dto.BusinessModelGraph;
 
 @Service
 public class BusinessModelService {
@@ -18,14 +20,16 @@ public class BusinessModelService {
   private final Child2Service child2Service;
   private final Grandchild1Service grandchild1Service;
   private final BusinessModelDao businessModelDao;
+  private final BusinessModelReadDao businessModelReadDao;
 
   public BusinessModelService(ParentService parentService, Child1Service child1Service, Child2Service child2Service,
-      Grandchild1Service grandchild1Service, BusinessModelDao businessModelDao) {
+      Grandchild1Service grandchild1Service, BusinessModelDao businessModelDao, BusinessModelReadDao businessModelReadDao) {
     this.parentService = parentService;
     this.child1Service = child1Service;
     this.child2Service = child2Service;
     this.grandchild1Service = grandchild1Service;
     this.businessModelDao = businessModelDao;
+    this.businessModelReadDao = businessModelReadDao;
   }
 
   /**
@@ -42,7 +46,7 @@ public class BusinessModelService {
    * 4. No duplicate children are created due to serialization by parent ID
    */
   @Transactional
-  public BusinessModel create(BusinessModelCreateRequest req) {
+  public BusinessModelGraph create(BusinessModelCreateRequest req) {
     // No explicit locks needed; child creation is idempotent via UPSERT
     ParentEntity parent = parentService.getParentOrThrow(req.getParentId());
 
@@ -50,9 +54,12 @@ public class BusinessModelService {
     Child2 child2 = this.getOrCreateChild2(parent.getId(), req.getChild2Name());
     Grandchild1 grandchild1 = this.getOrCreateGrandchild1(child1.getId(), req.getGrandchild1Name());
 
-    return businessModelDao.createBusinessModel(req.getName(), req.getType(), parent.getId(), child1.getId(),
-        child2.getId(),
-        grandchild1.getId(), req.getRequestSequence());
+  BusinessModel created = businessModelDao.createBusinessModel(req.getName(), req.getType(), parent.getId(),
+    child1.getId(), child2.getId(),
+    grandchild1.getId(), req.getRequestSequence());
+
+  // Final hydrate read to return fully joined references
+  return businessModelReadDao.findGraphById(created.getId());
   }
 
   private Grandchild1 getOrCreateGrandchild1(Long child1Id, String name) {
