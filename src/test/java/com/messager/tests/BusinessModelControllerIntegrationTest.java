@@ -159,11 +159,8 @@ public class BusinessModelControllerIntegrationTest {
       pool.awaitTermination(10, TimeUnit.SECONDS);
     }
 
-    // Expect some failures due to unique constraint violations under concurrency
-    // In ideal naive implementation: 1 success per batch, 9 failures per batch
-    // But with retries in service layer, we should see more successes (reuse)
-    assertThat(successCount).isGreaterThan(0);
-    assertThat(successCount + failureCount).isEqualTo(totalRequests);
+    assertThat(successCount).isEqualTo(totalRequests);
+    assertThat(failureCount).isEqualTo(0);
 
     // Query DB to see which request sequences actually succeeded
     List<Integer> successfulSequences = jdbcTemplate.query(
@@ -177,7 +174,7 @@ public class BusinessModelControllerIntegrationTest {
     System.out.println("Request sequences that succeeded: " + successfulSequences);
     System.out.println("================================");
 
-    // Analyze pattern: should see exactly 1 from each batch of 10
+    // Analyze pattern: should see exactly 10 from each batch of 10
     System.out.println("\nAnalysis by batch:");
     for (int b = 0; b < batches; b++) {
       final int batchStart = b * batchSize;
