@@ -18,6 +18,6 @@ public class Child2Service {
   }
 
   public Child2 save(Child2 child2) {
-    return child2Dao.insertStrict(child2);
+    return child2Dao.save(child2);
   }
 }
